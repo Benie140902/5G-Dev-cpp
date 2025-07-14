@@ -1,5 +1,10 @@
 #include<bits/stdc++.h>
+#include "main.h"
+
 using namespace std;
+
+int num_bits;
+vector<int> msg;
 
 vector<int> generator_bits(int num_bits) {
     vector<int> bits(num_bits);
@@ -9,13 +14,10 @@ vector<int> generator_bits(int num_bits) {
     return bits;
 }
 int main(){
-    int num_bits;
     cout << "Enter the number of bits: ";
     cin >> num_bits;
-    vector <int> msg=generator_bits(num_bits);
-    for (int i = 0; i < num_bits; ++i) {
-        cout << msg[i]<<endl;
-    }
+    msg=generator_bits(num_bits);
+    auto msg_crc24a=crc_append24a(msg);
     return 0;
 
 
