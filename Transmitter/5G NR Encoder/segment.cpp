@@ -55,20 +55,6 @@ vector <int> crc_append24b(const vector<int>& input_codeblock){
     return transport_code_block;
 }
 
-#include <iostream>
-#include <vector>
-#include <map>
-#include <cmath>
-#include <algorithm>
-
-using namespace std;
-
-// Dummy placeholder for CRC append function — replace with your actual implementation
-vector<int> crc_append24b(const vector<int>& input) {
-    vector<int> crc_bits(24, 1); // Replace with actual CRC computation
-    return crc_bits;
-}
-
 vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int block_size) {
     vector<vector<int>> code_block;
 
