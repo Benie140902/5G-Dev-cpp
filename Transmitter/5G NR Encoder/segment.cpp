@@ -87,8 +87,14 @@ int ldpc_basegraph_select(int num_tb_bits) {
     if(num_tb_bits >= 8448){
         return 22; 
     }
-    else 
+    else if (num_tb_bits >=640)
         return 10;
+    else if (num_tb_bits >=560)
+        return 9;
+    else if (num_tb_bits >=192)
+        return 8;
+    else 
+        return 6;
    
 }
 }
