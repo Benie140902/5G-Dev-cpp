@@ -4,56 +4,13 @@
 #include <map>
 #include <algorithm>
 #include <iterator>
-#include "/home/mantiswave/5G_DEV_CPP/Transmitter/main.h"
+#include "/home/benie/5G-Dev-cpp/Transmitter/main.h"
 
 using namespace std;
-vector<int> compute_crc(const vector<int>& input_codeblock, uint32_t polynomial, int crc_length);
-vector<int> crc_append24a(const vector<int>& input_codeblock);
-vector<int> crc_append24b(const vector<int>& input_codeblock);
-vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int block_size);
-vector<int> generator_bits(int num_bits);
 const uint32_t CRC_24a = 0x1864CFB; // CRC-24a polynomial
 const uint32_t CRC_24b = 0x1800063; // CRC-24b polynomial
 
-// namespace segment {
-
-
-// const int MAX_Block_Size = 8448; // Maximum block size for encoding according to 3GPP TS 38.212
-
-// extern vector<int>crc_append24b(const vector<int>&);
-// extern vector<int>crc_append16(const vector<int>&);
-
-vector <int> compute_crc(const vector<int>& input_codeblock, uint32_t polynomial, int crc_length){
-
-    uint32_t crc=0;
-    for(int bits: input_codeblock){
-        bool msb = (crc>>(crc_length-1)&1)^ bits;
-        crc <<= 1;
-        if(msb) crc ^= polynomial;
-    }
-    vector<int> crc_bits(crc_length);
-    for(int i=0; i<crc_length; ++i){
-        crc_bits[i] = (crc >> (crc_length - 1 - i)) & 1;
-    }
-    return crc_bits;
-
-}
-
-vector <int> crc_append24a(const vector<int>& input_codeblock){
-    int crc_length = 24;
-    auto crc=compute_crc(input_codeblock,CRC_24a,crc_length);
-    vector<int> transport_code_block=input_codeblock;
-    transport_code_block.insert(transport_code_block.end(),crc.begin(),crc.end());
-    return transport_code_block;
-}
-
-vector <int> crc_append24b(const vector<int>& input_codeblock){
-    int crc_length = 24;
-    auto crc=compute_crc(input_codeblock,CRC_24a,crc_length);
-    vector<int> transport_code_block=input_codeblock;
-    transport_code_block.insert(transport_code_block.end(),crc.begin(),crc.end());
-    return transport_code_block;
-}
+namespace segment {
 
 vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int block_size) {
     vector<vector<int>> code_block;
@@ -123,24 +80,4 @@ vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int bl
 
     return code_block;
 }
-
-
-vector<int> generator_bits(int num_bits) {
-    vector<int> bits(num_bits);
-    for (int i = 0; i < num_bits; ++i) {
-        bits[i] = rand() % 2;
-    }
-    return bits;
 }
-
-int main(){
-    int num_bits;
-    cout << "Enter the number of bits: ";
-    cin >> num_bits;
-    auto msg=generator_bits(num_bits);
-    // using namespace crcattach;
-    auto msg_crc24a=crc_append24a(msg);
-
-    auto code_block= segment_codeblock(msg_crc24a,8448); // base graph 1 in LDPC encoding
-}
-
