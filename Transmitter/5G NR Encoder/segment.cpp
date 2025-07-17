@@ -55,26 +55,41 @@ vector <int> crc_append24b(const vector<int>& input_codeblock){
     return transport_code_block;
 }
 
-vector<vector<int>> segment_codeblock(const vector<int>& transport_block ,int block_size) {
-    vector<vector<int>> code_block;
-    int num_bits =transport_block.size()-24; // Assuming the last 24 bits are CRC bits
-    int l; // Length of CRC bits to append
-    int num_segments ,cb_len=0;
-    if(num_bits < block_size){
-        l=0;
-        num_segments=1;
-        cb_len = num_bits;
-    }
-    else
-    {
-        l=24;
-        num_segments = ceil(static_cast<double>(num_bits) / (block_size-l));
-        cb_len=num_bits+(l*num_segments);
-    }
-    int num_cb_bits=cb_len/num_segments;
+#include <iostream>
+#include <vector>
+#include <map>
+#include <cmath>
+#include <algorithm>
 
-    int ldpc_baseg1=22;
-     map<int, vector<int>> zero_shift = {
+using namespace std;
+
+// Dummy placeholder for CRC append function — replace with your actual implementation
+vector<int> crc_append24b(const vector<int>& input) {
+    vector<int> crc_bits(24, 1); // Replace with actual CRC computation
+    return crc_bits;
+}
+
+vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int block_size) {
+    vector<vector<int>> code_block;
+
+    int num_bits = transport_block.size() - 24; // Assuming last 24 bits are CRC
+    int l; // Length of CRC bits to append
+    int num_segments, cb_len = 0;
+
+    if (num_bits < block_size) {
+        l = 0;
+        num_segments = 1;
+        cb_len = num_bits;
+    } else {
+        l = 24;
+        num_segments = ceil(static_cast<double>(num_bits) / (block_size - l));
+        cb_len = num_bits + (l * num_segments);
+    }
+
+    int num_cb_bits = cb_len / num_segments;
+
+    int ldpc_baseg1 = 22;
+    map<int, vector<int>> zero_shift = {
         {0, {2, 4, 8, 16, 32, 64, 128, 256}},
         {1, {3, 6, 12, 24, 48, 96, 192, 384}},
         {2, {5, 10, 20, 40, 80, 160, 320}},
@@ -84,42 +99,45 @@ vector<vector<int>> segment_codeblock(const vector<int>& transport_block ,int bl
         {6, {13, 26, 52, 104, 208}},
         {7, {15, 30, 60, 120, 240}}
     };
-    int zc=0;
-    float prod = num_cb_bits/ldpc_baseg1;
-    
-    for(const auto& [key,vec]:zero_shift){
-        for(int val:vec){
-            if(prod >= val){
-                zc = max(val,zc);
-                
-            }
-        }
-        
-    }
-    int K=ldpc_baseg1*zc; // K is the number of bits in the code block
-// section of segmentation on 3GPP basis
-    int s=0;
-    for (int r=0;r<=num_segments;++r){
-        for(int k=0;k<=(num_cb_bits-l);++k){
-            code_block[r][k]=transport_block[s];
-            s=s+1;
-        }
-        if(num_segments>1){
-            vector<int>dum_cb =crc_append24b(transport_block); // crc attached
-            for(int k=(num_cb_bits-l);k<=num_cb_bits;++k){
-                code_block[r][k]=dum_cb[k-(num_cb_bits-l)];
-            }
-        }
-        // insertion of filler bits 
 
-        for (int k=num_cb_bits;k<=K;++k){
-            code_block[r].push_back(0); // Filler bits are added to make the code block size equal to K
+    int zc = 0;
+    float prod = static_cast<float>(num_cb_bits) / ldpc_baseg1;
+
+    for (const auto& [key, vec] : zero_shift) {
+        for (int val : vec) {
+            if (prod >= val) {
+                zc = max(val, zc);
+            }
         }
     }
 
- 
+    int K = ldpc_baseg1 * zc;
+
+    // Initialize outer vector with num_segments and each inner vector with num_cb_bits size
+    code_block = vector<vector<int>>(num_segments, vector<int>(num_cb_bits, 0));
+
+    int s = 0;
+    for (int r = 0; r < num_segments; ++r) {
+        for (int k = 0; k < (num_cb_bits - l) && s < transport_block.size(); ++k) {
+            code_block[r][k] = transport_block[s];
+            ++s;
+        }
+
+        if (num_segments > 1) {
+            vector<int> dum_cb = crc_append24b(transport_block);
+            for (int k = (num_cb_bits - l); k < num_cb_bits && (k - (num_cb_bits - l)) < dum_cb.size(); ++k) {
+                code_block[r][k] = dum_cb[k - (num_cb_bits - l)];
+            }
+        }
+
+        for (int k = num_cb_bits; k < K; ++k) {
+            code_block[r].push_back(0); // Filler bits
+        }
+    }
+
     return code_block;
 }
+
 
 vector<int> generator_bits(int num_bits) {
     vector<int> bits(num_bits);
