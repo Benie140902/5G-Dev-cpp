@@ -4,9 +4,11 @@
 #include <map>
 #include <algorithm>
 #include <iterator>
-#include "/home/benie/5G-Dev-cpp/Transmitter/main.h"
+#include "/home/mantiswave/5G_DEV_CPP/Transmitter/main.h"
 
 using namespace std;
+using namespace crcattach; // namespace crcattach;
+
 const uint32_t CRC_24a = 0x1864CFB; // CRC-24a polynomial
 const uint32_t CRC_24b = 0x1800063; // CRC-24b polynomial
 
@@ -31,7 +33,7 @@ vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int bl
 
     int num_cb_bits = cb_len / num_segments;
 
-    int ldpc_baseg1 = 22;
+    int ldpc_baseg = ldpc_basegraph_select(num_bits);
     map<int, vector<int>> zero_shift = {
         {0, {2, 4, 8, 16, 32, 64, 128, 256}},
         {1, {3, 6, 12, 24, 48, 96, 192, 384}},
@@ -44,8 +46,7 @@ vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int bl
     };
 
     int zc = 0;
-    float prod = static_cast<float>(num_cb_bits) / ldpc_baseg1;
-
+    float prod = static_cast<float>(num_cb_bits) / ldpc_baseg;
     for (const auto& [key, vec] : zero_shift) {
         for (int val : vec) {
             if (prod >= val) {
@@ -54,7 +55,7 @@ vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int bl
         }
     }
 
-    int K = ldpc_baseg1 * zc;
+    int K = ldpc_baseg * zc;
 
     // Initialize outer vector with num_segments and each inner vector with num_cb_bits size
     code_block = vector<vector<int>>(num_segments, vector<int>(num_cb_bits, 0));
@@ -67,7 +68,7 @@ vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int bl
         }
 
         if (num_segments > 1) {
-            vector<int> dum_cb = crc_append24b(transport_block);
+            vector<int> dum_cb = crcattach::crc_append24b(transport_block);
             for (int k = (num_cb_bits - l); k < num_cb_bits && (k - (num_cb_bits - l)) < dum_cb.size(); ++k) {
                 code_block[r][k] = dum_cb[k - (num_cb_bits - l)];
             }
@@ -79,5 +80,15 @@ vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int bl
     }
 
     return code_block;
+}
+
+int ldpc_basegraph_select(int num_tb_bits) {
+
+    if(num_tb_bits >= 8448){
+        return 22; 
+    }
+    else 
+        return 10;
+   
 }
 }
