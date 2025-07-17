@@ -74,7 +74,7 @@ vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int bl
 
     int num_cb_bits = cb_len / num_segments;
 
-    int ldpc_baseg1 = 22;
+    int ldpc_baseg = ldpc_basegraph_select(num_bits);
     map<int, vector<int>> zero_shift = {
         {0, {2, 4, 8, 16, 32, 64, 128, 256}},
         {1, {3, 6, 12, 24, 48, 96, 192, 384}},
@@ -87,7 +87,7 @@ vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int bl
     };
 
     int zc = 0;
-    float prod = static_cast<float>(num_cb_bits) / ldpc_baseg1;
+    float prod = static_cast<float>(num_cb_bits) / ldpc_baseg;
 
     for (const auto& [key, vec] : zero_shift) {
         for (int val : vec) {
@@ -97,7 +97,7 @@ vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int bl
         }
     }
 
-    int K = ldpc_baseg1 * zc;
+    int K = ldpc_baseg * zc;
 
     // Initialize outer vector with num_segments and each inner vector with num_cb_bits size
     code_block = vector<vector<int>>(num_segments, vector<int>(num_cb_bits, 0));
@@ -122,6 +122,21 @@ vector<vector<int>> segment_codeblock(const vector<int>& transport_block, int bl
     }
 
     return code_block;
+}
+int ldpc_basegraph_select(int num_tb_bits) {
+
+    if(num_tb_bits >= 8448){
+        return 22; 
+    }
+    else if (num_tb_bits >=640)
+        return 10;
+    else if (num_tb_bits >=560)
+        return 9;
+    else if (num_tb_bits >=192)
+        return 8;
+    else 
+        return 6;
+   
 }
 
 
